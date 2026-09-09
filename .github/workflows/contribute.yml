@@ -1,0 +1,78 @@
+name: Autonomous GitBot Cloud Engine
+
+on:
+  schedule:
+    # 4 daily sessions aligned to Indian Standard Time (IST, UTC+05:30)
+    - cron: '15 4 * * *'   # 09:45 AM IST (Morning Session)
+    - cron: '15 9 * * *'   # 02:45 PM IST (Afternoon Session)
+    - cron: '15 13 * * *'  # 06:45 PM IST (Evening Session)
+    - cron: '15 17 * * *'  # 10:45 PM IST (Night Session)
+  workflow_dispatch:        # Allows manual trigger anytime from GitHub Actions tab
+  push:
+    branches:
+      - main
+    paths:
+      - 'config.json'      # Activates immediately when configured!
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: gitbot-contribution-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  cloud-contribute:
+    if: github.repository != 'Dashrath175/GitBot'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Configure Git Identity from Config
+        run: |
+          AUTHOR_NAME=$(python -c "import engine; print(engine.load_config().get('author_name', '${{ github.actor }}'))")
+          AUTHOR_EMAIL=$(python -c "import engine; print(engine.load_config().get('author_email', '${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com'))")
+          git config --global user.name "$AUTHOR_NAME"
+          git config --global user.email "$AUTHOR_EMAIL"
+          echo "Configured Git author as: $AUTHOR_NAME <$AUTHOR_EMAIL>"
+
+      - name: Run Engine Tests
+        run: |
+          python -m unittest test_gitbot.py -v
+
+      - name: Run Intensity-Controlled Batch & Activity Dispatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python bot.py
+
+      - name: Push Commits to Repository
+        run: |
+          git status
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
+
+      - name: Verify Remote GitBot Session Evidence
+        run: |
+          git fetch origin main
+          python -c "import engine; results, changed=engine.reconcile_verified_sessions('.'); failed=[r for r in results if r['status'] != 'VERIFIED']; print(results); assert not failed, failed; print(f'changed={changed}')"
+          if ! git diff --quiet -- data/provenance.json; then
+            git add data/provenance.json
+            git commit -m "chore(gitbot): persist verified remote sessions"
+            git push origin HEAD:main
+          fi
+
+

@@ -1,0 +1,11 @@
+{
+  "date": null,
+  "today_target": 0,
+  "today_done": 0,
+  "runs_completed_today": 0,
+  "yesterday_target": 80,
+  "current_month": null,
+  "spikes_this_month": 0,
+  "last_spike_date": null,
+  "history": []
+}

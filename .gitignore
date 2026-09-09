@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+Thumbs.db
+
+# Temporary and local scratch files
+scratch/
+*.tmp
+*.log
+$null
+.gitbot_location.json
+bin/

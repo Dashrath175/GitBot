@@ -1,0 +1,18 @@
+{
+  "author_name": "Developer",
+  "author_email": "dev@example.com",
+  "preset": "active",
+  "min_daily_commits": 50,
+  "max_daily_commits": 250,
+  "normal_max_commits": 145,
+  "spike_min_commits": 170,
+  "spike_max_commits": 240,
+  "max_spikes_per_month": 4,
+  "runs_per_day": 4,
+  "max_delta_per_day": 32,
+  "weekend_mode": "normal",
+  "is_paused": false,
+  "notification_mode": "every-batch",
+  "vacation_mode": false,
+  "vacation_end_date": null
+}
